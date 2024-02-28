@@ -5,6 +5,9 @@ const qrcode = require("qrcode-terminal");
 
 const { Client, LocalAuth } = require("whatsapp-web.js");
 
+// Import the configuration file
+const config = require("./config.json");
+
 function sha1Hash(str) {
   let hash = crypto.createHash("sha1");
   hash.update(str);
@@ -27,7 +30,7 @@ client.on("ready", () => {
     console.log("Got chats!");
     let chatId = null;
     for (let chat of chats) {
-      if (chat.name === "Mecenas do Despolariza") {
+      if (chat.name === config.groupChatTitle) {
         chatId = chat.id._serialized;
         console.log("Got chat id: " + chatId);
         break;
@@ -36,7 +39,7 @@ client.on("ready", () => {
     console.log("Getting chat: " + chatId);
     client.getChatById(chatId).then((chat) => {
       console.log("Got chat!");
-      chat.fetchMessages({ limit: 100 }).then((messages) => {
+      chat.fetchMessages({ limit: config.messagesToFetch }).then((messages) => {
         console.log("Got messages!");
         let chatExport = "";
         for (let message of messages) {
