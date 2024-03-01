@@ -1,1 +1,4 @@
 env/
+message_fetcher/node_modules/
+message_fetcher/authFolder/
+message_fetcher/.wwebjs_cache/
