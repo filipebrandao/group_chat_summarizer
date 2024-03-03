@@ -14,7 +14,7 @@ function sha1Hash(str) {
   return hash.digest("hex");
 }
 
-function anonimizeMessageBody(message) {
+function anonymizeMessageBody(message) {
   let body = message.body
   message.mentionedIds.forEach((mention) => body = body.split(mention.user).join(sha1Hash(`${mention.user}@${mention.server}`)))
   return body
@@ -49,7 +49,7 @@ client.on("ready", () => {
         console.log("Got messages!");
         let chatExport = "";
         for (let message of messages) {
-          chatExport += `(${new Date(message.timestamp * 1000).toISOString()}) ${sha1Hash(message.author)}: ${anonimizeMessageBody(message)}\n`;
+          chatExport += `(${new Date(message.timestamp * 1000).toISOString()}) ${sha1Hash(message.author)}: ${anonymizeMessageBody(message)}\n`;
         }
         fs.writeFile("chat_export.txt", chatExport, (err) => {
           // In case of an error throw err.
