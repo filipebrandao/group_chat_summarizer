@@ -4,6 +4,7 @@ import datetime
 import argparse
 import logging
 import configparser
+import pytz
 from openai import OpenAI
 
 
@@ -31,10 +32,11 @@ except Exception as e:
     raise
 
 # Constants
-DATE_PATTERN = r'(\d{1,2}\/\d{1,2}\/\d{2,4},\s\d{1,2}:\d{2}\s)' # Whatsapp chat log date format when exporting from an Android 13 smartphone on en-US locale: "2/25/24, 19:29" 
+CHAT_LOG_DATE_PATTERN = r'(\(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\))' # Whatsapp chat log expected date format : "(YYYY-MM-DDTHH:MM:SS.sssZ)" 
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 SUMMARY_PROMPT = config['OpenAI']['prompt']
-MAX_WORD_COUNT = 2500 
-
+MAX_WORD_COUNT = int(config['Summarizer']['max_word_count'])
+TIMEZONE = config['Summarizer']['timezone']
 
 
 def read_file(file_path):
@@ -46,13 +48,13 @@ def read_file(file_path):
 
 def parse_whatsapp(text):
     """Parse WhatsApp messages."""
-    message_splits = re.split(DATE_PATTERN, text)
+    message_splits = re.split(CHAT_LOG_DATE_PATTERN, text)
     parsed_messages = []
     for i in range(1, len(message_splits), 2):
         message = message_splits[i] + " " + message_splits[i + 1]
         message = whatsapp_remove_sender(message)
-        date_str = message_splits[i][0:-1]
-        date = datetime.datetime.strptime(date_str, '%m/%d/%y, %H:%M').date()
+        date_str = message_splits[i][1:-1]
+        date = datetime.datetime.strptime(date_str, DATE_FORMAT).replace(tzinfo=datetime.timezone.utc).astimezone(pytz.timezone(TIMEZONE)).date()
         parsed_messages.append((date, message))
     return parsed_messages
 
